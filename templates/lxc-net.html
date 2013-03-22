@@ -1,0 +1,73 @@
+{% extends "layout.html" %}
+{% block title %}Networking{% endblock %}
+{% block content %}
+<div class="span9">
+	{{ super() }}
+	<form id="status" action="{{ url_for('lxc_net') }}" method="post">
+		<h3 class="head">LXC Network
+			<div class="lxc-net-btn btn-group" data-toggle="buttons-radio">
+				<button type="submit" class="btn btn-success" name="status" value="Enable" {% if cfg.use == 'true' %}disabled{% endif %}>Enable</button>
+				<button type="submit" class="btn btn-danger" name="status" value="Disable" {% if cfg.use == 'false' %}disabled{% endif %}>Disable</button>
+			</div>
+		</h3>
+	</form>
+	<div class="lxc-net{% if cfg.use == 'false' %} hide{% endif %}">
+		<form id="config" class="form-horizontal" action="{{ url_for('lxc_net') }}" method="post">
+			{% if running != [] %}<h4 class="text-error">Please, stop all containers before restart lxc-net.</h4><br />{% endif %}
+			<div class="control-group">
+				<label class="control-label" for="inputBridge">Bridge name</label>
+				<div class="controls">
+					<input pattern="\w+" type="text" id="inputBridge" name="bridge" value="{{ cfg.bridge }}"{% if running != [] %} disabled{% endif %}>
+					<span class="help-inline"><small>(e.g lxcbr0)</small></span>
+				</div>
+			</div>
+
+			<div class="control-group">
+				<label class="control-label" for="inputGateway">IP Address</label>
+				<div class="controls">
+					<input pattern="(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)" type="text" id="inputGateway" name="address" value="{{ cfg.address }}"{% if running != [] %} disabled{% endif %}>
+					<span class="help-inline"><small>(e.g 10.0.3.1)</small></span>
+				</div>
+			</div>
+
+			<div class="control-group">
+				<label class="control-label" for="inputNetmask">Netmask</label>
+				<div class="controls">
+					<input pattern="(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)" type="text" id="inputNetmask" name="netmask" value="{{ cfg.netmask }}"{% if running != [] %} disabled{% endif %}>
+					<span class="help-inline"><small>(e.g 255.255.255.0)</small></span>
+				</div>
+			</div>
+
+			<div class="control-group">
+				<label class="control-label" for="inputNetwork">Network</label>
+				<div class="controls">
+					<input pattern="(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(?:/\d{1,2}|)" type="text" id="inputNetwork" name="network" value="{{ cfg.network }}"{% if running != [] %} disabled{% endif %}>
+					<span class="help-inline"><small>(e.g 10.0.3.0/24)</small></span>
+				</div>
+			</div>
+
+			<div class="control-group">
+				<label class="control-label" for="inputDHCPRange">DHCP Range</label>
+				<div class="controls">
+					<input pattern="(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\,(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)" type="text" id="inputDHCPRange" name="range" value="{{ cfg.range }}"{% if running != [] %} disabled{% endif %}>
+					<span class="help-inline"><small>(e.g 10.0.3.2,10.0.3.254)</small></span>
+				</div>
+			</div>
+
+			<div class="control-group">
+				<label class="control-label" for="inputDHCPMax">DHCP Max</label>
+				<div class="controls">
+					<input pattern="(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)" type="text" id="inputDHCPMax" name="max" value="{{ cfg.max }}"{% if running != [] %} disabled{% endif %}>
+					<span class="help-inline"><small>(e.g 253)</small></span>
+				</div>
+			</div>
+			<div class="control-group">
+				<div class="controls">
+					<button class="btn btn-primary btn-success" name="submit" value="apply" type="submit"{% if running != [] %} disabled{% endif %}><i class="icon-ok icon-white"></i> Apply</button>
+					<span class="help-inline"><small>If you change these settings, don't forget to change containers addresses!</small></span>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+{% endblock %}

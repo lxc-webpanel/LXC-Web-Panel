@@ -1,0 +1,32 @@
+{% extends "layout.html" %}
+{% block title %}Login{% endblock %}
+{% block content %}
+<div class="span4 offset4">
+  {{ super() }}
+  <form action="{{ url_for('login') }}" method="POST" class="form-signin">
+    <fieldset>
+    <legend>LXC Web Panel</legend>
+    <div class="control-group">
+      <label class="control-label" for="inputUsername">Username</label>
+      <div class="controls input-prepend">
+        <span class="add-on"><i class="icon-user"></i></span>
+        <input id="inputUsername" type="text" placeholder="Username" name="username" autofocus required>
+      </div>
+    </div>
+    <div class="control-group">
+      <label class="control-label" for="inputPassword">Password</label>
+     <div class="controls input-prepend">
+        <span class="add-on"><i class="icon-lock"></i></span>
+        <input id="inputPassword" type="password" placeholder="Password" name="password" required>
+      </div>
+    </div>
+    <div class="control-group">
+      <div class="controls">
+        <input id="inputURL" type="hidden" name="url" value="{{ request.path }}">
+        <input type="submit" class="btn" value="Log in"/>
+      </div>
+    </div>
+    </fieldset>
+  </form>
+</div>
+{% endblock %}

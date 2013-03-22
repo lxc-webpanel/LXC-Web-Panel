@@ -1,0 +1,24 @@
+<div class="span3">
+	<div class="well sidebar-nav">
+		<ul class="nav nav-list">
+			<li class="nav-header">General</li>
+			<li{% if request.path=="/" or request.path=="/home" %} class="active"{% endif %}><a href="../" id="home-btn"><i class="icon-home"></i> Overview<i class="icon-refresh hide" id="home-load" style="float:right;margin-top:3px;"></i></a></li>
+		</ul>
+		{% if containers != [] %}<ul class="nav nav-list">
+			<li class="nav-header">Containers</li>
+			{% for c in containers %}
+			<li><a href="../{{c}}/edit"><i class="icon-hdd"></i> {{c}}</a></li>
+			{% endfor %}
+		</ul>{% endif %}
+		{% if session.su == 'Yes' %}<ul class="nav nav-list">
+			<li class="nav-header">LXC Settings</li>
+			<li{% if request.path=="/settings/lxc-net" %} class="active"{% endif %}><a href="{{ url_for('lxc_net') }}"><i class="icon-globe"></i> Networking</a></li>
+			<li{% if request.path=="/checkconfig" %} class="active"{% endif %}><a href="{{ url_for('checkconfig') }}"><i class="icon-check"></i> Check config</a></li>
+		</ul>{% endif %}
+		<ul class="nav nav-list">
+			<li class="nav-header">LXC Web Panel</li>
+			{% if session.su == 'Yes' %}<li{% if request.path=="/lwp/users" %} class="active"{% endif %}><a href="{{ url_for('lwp_users') }}"><i class="icon-user"></i> Users</a></li>{% endif %}
+			<li{% if request.path=="/about" %} class="active"{% endif %}><a href="{{ url_for('about') }}"><i class="icon-info-sign"></i> About</a></li>
+		</ul>
+	</div>
+</div>

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>{% block title %}{% endblock %} - LXC Web Panel</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta name="description" content="">
+		<meta name="author" content="Antoine Tanzilli, Elie Deloumeau-Prigent">
+
+		<!-- Le styles -->
+		<link href="../static/css/bootstrap.css" rel="stylesheet">
+		<style type="text/css">
+			body {padding-top: 60px;padding-bottom: 40px;}
+			h3.head {margin:0;}
+			.sidebar-nav {padding: 9px 0;}
+			.table td{vertical-align: middle;padding: 4px 8px;}
+			.hero-unit{padding:5px 30px;}
+			.help-block ul{margin:0 0 -10px 0;}
+			.help-block li{list-style-type:none;}
+		</style>
+		<link href="../static/css/bootstrap-responsive.min.css" rel="stylesheet">
+
+		<!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+		<!--[if lt IE 9]>
+			<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+		<![endif]-->
+		<link rel="shortcut icon" href="../static/ico/favicon.ico">
+
+	</head>
+
+	<body>
+		
+		{% if session.logged_in %}
+			{% include "includes/nav.html" %}
+		{% endif %}
+
+
+
+		<div class="container">
+			<div class="row">
+				{% if session.logged_in %}
+					{% include "includes/aside.html" %}
+				{% endif %}
+
+				{% block content %}
+					{% with messages = get_flashed_messages(with_categories=true) %}
+						{% if messages %}
+							{% for category, message in messages %}
+								<div class="alert alert-{{ category }}">
+									<button type="button" class="close" data-dismiss="alert">&times;</button>
+									{{ message }}
+								</div>
+							{% endfor %}
+						{% endif %}
+					{% endwith %}
+				{% endblock %}
+			</div><!--/row-->
+
+			<hr>
+
+			<footer>
+				<p><small>LXC Web Panel &copy; 2013{% if 'logged_in' in session %} - <a href="{{ url_for('about') }}" class="muted">MIT License</a>{% endif %}</small></p>
+			</footer>
+
+		</div><!--/.fluid-container-->
+
+		<!-- Le javascript
+		================================================== -->
+		<!-- Placed at the end of the document so the pages load faster -->
+		<script> var $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};</script>
+		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+		<script src="../static/js/bootstrap.min.js"></script>
+		<script src="../static/js/jqBootstrapValidation.js"></script>
+		<script src="../static/js/html5slider.js"></script>
+		<script>
+				$(function () {
+						$(".alert").alert().delay(5000).slideUp();
+						$("#home-btn").on('click',function(){
+								$('#home-load').fadeIn();
+						});
+						$("input").not("[type=submit]").jqBootstrapValidation();
+				});
+		</script>
+		{% block script %}{% endblock %}
+	</body>
+</html>

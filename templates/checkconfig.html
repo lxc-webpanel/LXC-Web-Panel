@@ -1,0 +1,24 @@
+{% extends "layout.html" %}
+{% block title %}Config{% endblock %}
+{% block content %}
+<div class="span6">
+	{{ super() }}
+	<table class="table table-hover table-bordered">
+		<tbody>
+			{% for i in cfg %}{% if i.split(':')[1] == 'enabled' or i.split(':')[1] == 'missing' or i.split(':')[1] == 'required' or '---' in i %}<tr class="{% if i.split(':')[1] == 'enabled' %}success{% elif i.split(':')[1] == 'missing' %}warning{% elif i.split(':')[1] == 'required' %}error{% endif %}">
+				<td>{% if '---' in i %}<strong>{{ i.split(':')[0] }}</strong>{% else %}{{ i.split(':')[0] }}{% endif %}</td>
+				<td width="15px"><i class="{% if i.split(':')[1] == 'enabled' %}icon-ok{% elif i.split(':')[1] == 'missing' %}icon-warning-sign{% elif i.split(':')[1] == 'required' %}icon-remove{% endif %}"></i></td>
+			</tr>{% endif %}{% endfor %}
+		</tbody>
+	</table>
+</div>
+<div class="span2">
+	<div class="well">
+		<ul class="nav nav-list">
+			<li class="text-success"><i class="icon-ok"></i> Enabled</li>
+			<li class="text-warning"><i class="icon-warning-sign"></i> Missing</li>
+			<li class="text-error"><i class="icon-remove"></i> Required</li>
+		</ul>
+	</div>
+</div>
+{% endblock %}

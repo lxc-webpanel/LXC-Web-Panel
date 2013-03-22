@@ -1,0 +1,17 @@
+<div class="navbar navbar-inverse navbar-fixed-top">
+  <div class="navbar-inner">
+    <div class="container">
+      <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </a>
+      <a class="brand" href="../">LXC Web Panel</a>
+      <div class="nav-collapse collapse">
+        <p class="navbar-text pull-right">
+          <a href="{{ url_for('logout') }}" class="navbar-link">Logout ({% if session.name and session.name != 'None' %}{{ session.name }}{% else %}{{ session.username }}{% endif %})</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,39 @@
+{% extends "layout.html" %}
+{% block title %}Users{% endblock %}
+{% block content %}
+<div class="span6">
+	{{ super() }}
+	<div class="accordion" id="accordion2">
+		{% for user in users %}<div class="accordion-group">
+			<div class="accordion-heading">
+				<a type="button" class="btn btn-danger btn-mini pull-right" style="margin: 7px 7px 0 0;" href="{{ url_for('lwp_users', username=user.username, userid=user.id, trash=1, token=session.token) }}"><i class="icon-trash icon-white"></i> Delete</a>
+				<a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#{{ user.username }}">
+				  {% if user.name %}{{ user.name }} ({{ user.username }}){% else %}{{ user.username }}{% endif %}
+				</a>
+			</div>
+			<div id="{{ user.username }}" class="accordion-body collapse{% if session.username == user.username %} in{% endif %}">
+				<div class="accordion-inner">
+					<form class="form-inline" method="post" id="editUser">
+						<input type="hidden" name="username" value="{{ user.username }}">
+						<input type="text" name="name" value="{{ user.name }}" pattern="[a-z A-Z0-9]{3,32}" placeholder="Name">
+						<label class="checkbox">
+							<input type="checkbox" name="su" value="Yes"{% if user.su == 'Yes' %} checked{% endif %}> Super user
+						</label>
+						
+						<br /> <br />
+
+						<input type="password" name="password1" id="password1-{{ user.id }}" placeholder="Password">
+						<input type="password" name="password2" placeholder="Re-type">
+						<input type="hidden" name="newUser" value="False">
+						<button type="submit" class="btn">Update</button>
+					</form>
+				</div>
+			</div>
+		</div>{% endfor %}
+	</div>
+</div>
+<div class="span3">
+	<a class="btn btn-success" data-toggle="modal" data-target="#newUser"><i class="icon-plus-sign icon-white"></i> New user</a>
+</div>
+{% include "includes/modals.html" %}
+{% endblock %}
