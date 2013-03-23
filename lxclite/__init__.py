@@ -136,7 +136,7 @@ def unfreeze(container):
     '''
     if not exists(container): raise ContainerDoesntExists('Container {} does not exists!'.format(container))
     if not container in frozen(): raise ContainerNotRunning('Container {} is not frozen!'.format(container))
-    return _run('lxc-freeze -n {}'.format(container))
+    return _run('lxc-unfreeze -n {}'.format(container))
 
 def destroy(container):
     '''
