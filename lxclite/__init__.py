@@ -51,7 +51,7 @@ def create(container, template='ubuntu', storage=None):
     command += ' -t {}'.format(template)
     if storage: command += ' -B {}'.format(storage)
             
-    return _run('{} 2>&1 /dev/null'.format(command))
+    return _run(command)
 
 def info(container):
     '''
