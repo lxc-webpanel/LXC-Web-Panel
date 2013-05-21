@@ -1,0 +1,20 @@
+## Version 0.2 beta
+## 2013-04-30
+
++ Instant push memory and CPU options to cgroup values
++ Added partition option in the config file, you can choose which partition you want to monitor in the overview
++ If there is no container, the panel will display the modal "Create CT"
++ Added clone CT feature
++ Added "start at boot" button
++ Added support for multiple key/value (only for lxc.cgroup.devices.deny and lxc.cgroup.devices.allow) in container's config file (with ConfigParser)
++ Added support for templates option (Create CT)
+
+* Now, in the sidebar, links are highlighted for containers edit pages
+* Added modal to confirm the deletion of a user
+  * Can't delete a user if he is the only one
+  * Can't delete a admin user if there is no other admin user
+* Splited modals files
+* Now, simple users can't edit/create/destroy CTs and they can't reboot the host.
+* Allowed '-' in rootfs path (thanks to mkobel)
+* Changed regexp for hostname
+* Fixed checkconfig if kernel headers are not installed

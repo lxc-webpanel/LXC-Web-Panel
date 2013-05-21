@@ -2,12 +2,12 @@
 	<div class="well sidebar-nav">
 		<ul class="nav nav-list">
 			<li class="nav-header">General</li>
-			<li{% if request.path=="/" or request.path=="/home" %} class="active"{% endif %}><a href="../" id="home-btn"><i class="icon-home"></i> Overview<i class="icon-refresh hide" id="home-load" style="float:right;margin-top:3px;"></i></a></li>
+			<li{% if request.path=="/" or request.path=="/home" %} class="active"{% endif %}><a href="{{ url_for('home') }}" id="home-btn"><i class="icon-home"></i> Overview<i class="icon-refresh hide" id="home-load" style="float:right;margin-top:3px;"></i></a></li>
 		</ul>
 		{% if containers != [] %}<ul class="nav nav-list">
 			<li class="nav-header">Containers</li>
 			{% for c in containers %}
-			<li><a href="../{{c}}/edit"><i class="icon-hdd"></i> {{c}}</a></li>
+				<li{% if request.path=='/'+ c +'/edit' %} class="active"{% endif %}><a href="{{ url_for('edit',container=c) }}"><i class="icon-hdd"></i> {{c}}</a></li>
 			{% endfor %}
 		</ul>{% endif %}
 		{% if session.su == 'Yes' %}<ul class="nav nav-list">

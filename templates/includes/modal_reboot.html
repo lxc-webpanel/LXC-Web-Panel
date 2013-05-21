@@ -1,0 +1,13 @@
+<div id="reboot" class="modal hide fade" role="dialog" aria-labelledby="rebootLabel" aria-hidden="true">
+	<div class="modal-header">
+		<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+		<h3 id="rebootLabel" class="text-error">Oh wait!</h3>
+	</div>
+	<div class="modal-body">
+		<strong>Reboot this system now ?</strong>
+	</div>
+	<div class="modal-footer">
+		<button class="btn btn-small" data-dismiss="modal" aria-hidden="true">Cancel</button>
+		<a class="btn btn-danger" href="{{ url_for('action', name='host', action='reboot', token=session.token) }}"><i class="icon-off icon-white"></i> Reboot</a>
+	</div>
+</div>

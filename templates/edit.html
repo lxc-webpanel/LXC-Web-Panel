@@ -1,142 +1,143 @@
 {% extends "layout.html" %}
 {% block title %}{{container|capitalize}}{% endblock %}
 {% block content %}
-		<div class="span6">
-			{{ super() }}
-			<h3 class="head">{{ container|capitalize }}</small>
-				<div class="btn-group" data-toggle="buttons-radio" style="float:right;">
-					<div class="btn-group">
-					{% set start_action = {'STOPPED':'start','FROZEN':'unfreeze'} %}
-						<a class="btn{% if infos['status'] == 'RUNNING' %} disabled{% endif %}" {% if infos['status'] == 'STOPPED' or infos['status'] == 'FROZEN' %}href="{{ url_for('action', name=container, action=start_action[infos['status']], token=session.token, from='edit') }}"{% endif %}><i class="icon-play"></i> Start</a>
-						<a class="btn{% if infos['status'] == 'STOPPED' %} disabled{% endif %}" {% if infos['status'] == 'RUNNING' or infos['status'] == 'FROZEN' %}href="{{ url_for('action', name=container, action='stop', token=session.token, from='edit') }}"{% endif %}><i class="icon-stop"></i> Stop</a>
-						<a class="btn{% if infos['status'] == 'FROZEN' or infos['status'] == 'STOPPED' %} disabled{% endif %}" {% if infos['status'] == 'RUNNING' %}href="{{ url_for('action', name=container, action='freeze', token=session.token, from='edit') }}"{% endif %}><i class="icon-pause"></i> Freeze</a>
+	<div class="span6">
+		{{ super() }}
+		<h3 class="head">{{ container|capitalize }}</small>
+			<div class="btn-group" data-toggle="buttons-radio" style="float:right;">
+				<div class="btn-group">
+				{% set start_action = {'STOPPED':'start','FROZEN':'unfreeze'} %}
+					<a class="btn{% if infos['status'] == 'RUNNING' %} disabled{% endif %}" {% if infos['status'] == 'STOPPED' or infos['status'] == 'FROZEN' %}href="{{ url_for('action', name=container, action=start_action[infos['status']], token=session.token, from='edit') }}"{% endif %}><i class="icon-play"></i> Start</a>
+					<a class="btn{% if infos['status'] == 'STOPPED' %} disabled{% endif %}" {% if infos['status'] == 'RUNNING' or infos['status'] == 'FROZEN' %}href="{{ url_for('action', name=container, action='stop', token=session.token, from='edit') }}"{% endif %}><i class="icon-stop"></i> Stop</a>
+					<a class="btn{% if infos['status'] == 'FROZEN' or infos['status'] == 'STOPPED' %} disabled{% endif %}" {% if infos['status'] == 'RUNNING' %}href="{{ url_for('action', name=container, action='freeze', token=session.token, from='edit') }}"{% endif %}><i class="icon-pause"></i> Freeze</a>
+				</div>
+			</div>
+		</h3>
+		<br />
+		<form id="config" class="form-horizontal" action="{{ url_for('edit', container=container) }}" method="post">
+			<div class="control-group">
+				<label class="control-label" for="inputHostname">Hostname</label>
+				<div class="controls">
+					<input pattern="(?!^containers$)|^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$" type="text" id="inputHostname" name="hostname" value="{{ settings.utsname }}">
+				</div>
+			</div>
+
+			<hr>
+
+			<div class="control-group">
+				<label class="control-label" for="inputAutostart">Start at boot</label>
+				<div class="controls">
+					<div class="switch" data-on-label="<i class='icon-ok icon-white'></i>" data-off-label="<i class='icon-remove icon-white'></i>" data-on="success" data-off="danger">
+						<input type="checkbox" name="autostart" value="True" {% if settings.auto %}checked {% endif %}/>
 					</div>
 				</div>
-			</h3>
-			<br />
-			<form id="config" class="form-horizontal" action="{{ url_for('edit', container=container) }}" method="post">
+			</div>
+
+			<hr>
+
+			<div class="control-group switch-network-flags">
+				<label class="control-label" for="inputNetworkFlags">Network flag</label>
+				<div class="controls">
+					<div class="switch" data-on-label="Up" data-off-label="Down" data-on="success" data-off="danger">
+						<input type="checkbox" id="inputNetworkFlags" name="flags" value="{{ settings.flags }}"{% if settings.flags == 'up'%} checked{% endif %}/>
+					</div>
+				</div>
+			</div>
+			
+			<div id="network"{% if settings.flags != 'up' %} class="hide"{% endif %}>
 				<div class="control-group">
-					<label class="control-label" for="inputHostname">Hostname</label>
+					<label class="control-label" for="inputType">Network type</label>
 					<div class="controls">
-						<input pattern="(?!^containers$)([a-z0-9-]{1,63})|([a-z0-9-\.]{1,63}\.[a-z0-9-\.]{1,63}\.[a-z0-9\.]{1,6})" type="text" id="inputHostname" name="hostname" value="{{ settings.utsname }}">
-					</div>
-				</div>
-
-				<!-- <div class="control-group">
-					<div class="controls">
-						<label class="checkbox">
-							<input type="checkbox" name"boot" value="True"> Start at boot
-						</label>
-					</div>
-				</div> -->
-
-				<hr>
-
-				<div class="control-group">
-					<label class="control-label" for="inputFlags">Network flag</label>
-					<div class="controls">
-						<div id="inputFlags" class="btn-group" data-toggle="buttons-radio">
-							<button type="button" id="flagUp" value="up" class="btn btn-success{% if settings.flags == 'up'%} active{% endif %}">Up</button>
-							<button type="button" id="flagDown" value="down" class="btn btn-danger{% if settings.flags == 'down'%} active{% endif %}">Down</button>
-						</div>
-						<input type="hidden" name="flags" id="flags" value="{{ settings.flags }}" />
-					</div>
-				</div>
-				
-				<div id="network"{% if settings.flags != 'up' %} class="hide"{% endif %}>
-					<div class="control-group">
-						<label class="control-label" for="inputType">Network type</label>
-						<div class="controls">
-							<input pattern="\w+" type="text" id="inputType" name="type" value="{{ settings.type }}" placeholder="Undefined">
-						</div>
-					</div>
-
-					<div class="control-group">
-						<label class="control-label" for="inputLink">Network link</label>
-						<div class="controls">
-							<input pattern="\w+" type="text" id="inputLink" name="link" value="{{ settings.link }}" placeholder="Undefined">
-						</div>
-					</div>
-
-					<div class="control-group">
-						<label class="control-label" for="inputHWaddress">HW address</label>
-						<div class="controls">
-							<input pattern="([a-fA-F0-9]{2}[:|\-]?){6}" type="text" id="inputHWaddress" name="hwaddress" value="{{ settings.hwaddr }}" placeholder="Undefined">
-						</div>
-					</div>
-
-					<div class="control-group">
-						<label class="control-label" for="inputIPaddress">IP address</label>
-						<div class="controls">
-							<input pattern="(^25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?$)|(^Undefined$)" type="text" id="inputIPadress" name="ipaddress" value="{{ settings.ipv4 }}" placeholder="Undefined">
-						</div>
-					</div>
-				</div>
-
-				<hr>
-
-				<div class="control-group">
-					<label class="control-label" for="inputMemlimit">Memory limit *</label>
-					<div class="controls">
-						<input pattern="[0-9]+" type="range" id="inputMemlimit" name="memlimit" min="16" max="{{ host_memory.total }}" step="2" value="{% if settings.memlimit %}{{ settings.memlimit }}{% else %}{{ host_memory.total }}{% endif %}" onChange="updateMem('Memlimit', this.value);">
-						<span class="help-inline" id="Memlimit">{% if settings.memlimit %}{{ settings.memlimit }} MB{% else %}Unlimited{% endif %}</span>
+						<input pattern="\w+" type="text" id="inputType" name="type" value="{{ settings.type }}" placeholder="Undefined">
 					</div>
 				</div>
 
 				<div class="control-group">
-					<label class="control-label" for="inputSwlimit">Swap limit *</label>
+					<label class="control-label" for="inputLink">Network link</label>
 					<div class="controls">
-						<input pattern="[0-9]+" type="range" id="inputSwlimit" name="swlimit" min="32" max="{{ host_memory.total * 2 }}" step="2" value="{% if settings.swlimit %}{{ settings.swlimit }}{% else %}{{ host_memory.total * 2 }}{% endif %}" onChange="updateSw('Swlimit', this.value);">
-						<span class="help-inline" id="Swlimit">{% if settings.swlimit %}{{ settings.swlimit }} MB{% else %}Unlimited{% endif %}</span>
+						<input pattern="[a-zA-Z0-9_-]+" type="text" id="inputLink" name="link" value="{{ settings.link }}" placeholder="Undefined">
 					</div>
 				</div>
 
 				<div class="control-group">
-					<label class="control-label" for="inputCPUs">CPUs **</label>
+					<label class="control-label" for="inputHWaddress">HW address</label>
 					<div class="controls">
-						<input pattern="[0-9,-]+" type="text" id="inputCPUs" name="cpus" value="{{ settings.cpus }}" placeholder="All">
-						<span class="help-inline"><small>(e.g 0 or 0-1,3 or 0,3)</small></span>
+						<input pattern="([a-fA-F0-9]{2}[:|\-]?){6}" type="text" id="inputHWaddress" name="hwaddress" value="{{ settings.hwaddr }}" placeholder="Undefined">
 					</div>
 				</div>
 
 				<div class="control-group">
-					<label class="control-label" for="inputCPUShares">CPU Shares **</label>
+					<label class="control-label" for="inputIPaddress">IP address</label>
 					<div class="controls">
-						<input pattern="[0-9]+" type="number" id="inputCPUShares" name="cpushares" min="16" step="2" value="{{ settings.shares }}" placeholder="1024">
+						<input pattern="(^25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?$)|(^Undefined$)" type="text" id="inputIPadress" name="ipaddress" value="{{ settings.ipv4 }}" placeholder="Undefined">
 					</div>
 				</div>
+			</div>
 
-				<hr>
+			<hr>
 
-				<div class="control-group">
-					<label class="control-label" for="inputRootfs">Root FS</label>
-					<div class="controls">
-						<input pattern="[a-zA-Z0-9_/]+" type="text" id="inputRootfs" name="rootfs" value="{{ settings.rootfs }}" placeholder="Undefined (LVM or BTRFS)">
-						<span class="help-inline"><small>(e.g /var/lib/lxc/{{container}}/rootfs)</small></span>
-					</div>
+			<div class="control-group form-inline">
+				<label class="control-label" for="sliderMemlimit">Memory limit *</label>
+				<div class="controls">
+					<input class="fix-height" pattern="[0-9]+" type="range" id="sliderMemlimit" name="memlimit" min="16" max="{{ host_memory.total }}" step="2" value="{% if settings.memlimit %}{{ settings.memlimit }}{% else %}{{ host_memory.total }}{% endif %}" onChange="updateMemInput('inputMemlimit', this.value, {{ host_memory.total }});">		
+					<input pattern="[0-9]+" class="input-mini{% if not settings.memlimit %} hide{% endif %}" id="inputMemlimit" type="number" min="16" step="2" max="{{ host_memory.total }}" value="{% if settings.memlimit %}{{ settings.memlimit }}{% endif %}" onChange="updateMemSlider('sliderMemlimit', this.value);"><span class="help-inline fix-height">{% if settings.memlimit %}MB{% else %}Unlimited{% endif %}</span>
 				</div>
+			</div>
 
-				<div class="control-group">
-					<div class="controls">
-						<button class="btn btn-primary btn-success" name="submit" value="apply"><i class="icon-ok icon-white"></i> Apply</button>
-					</div>
+			<div class="control-group">
+				<label class="control-label" for="sliderSwlimit">Memory + Swap limit *</label>
+				<div class="controls">
+					<input class="fix-height" pattern="[0-9]+" type="range" id="sliderSwlimit" name="swlimit" min="32" max="{{ host_memory.total * 2 }}" step="2" value="{% if settings.swlimit %}{{ settings.swlimit }}{% else %}{{ host_memory.total * 2 }}{% endif %}" onChange="updateMemInput('inputSwlimit', this.value, {{ host_memory.total * 2 }});">
+					<input pattern="[0-9]+" class="input-mini{% if not settings.swlimit %} hide{% endif %}" id="inputSwlimit" type="number" min="32" step="2" max="{{ host_memory.total *2 }}" value="{% if settings.swlimit %}{{ settings.swlimit }}{% endif %}" onChange="updateMemSlider('sliderSwlimit', this.value);"><span class="help-inline fix-height">{% if settings.swlimit %}MB{% else %}Unlimited{% endif %}</span>
 				</div>
+			</div>
 
-				<p class="muted"><small>* Set to max to unset (unlimited)<br />** Leave empty to unset</small></p>
-			</form>
+			<div class="control-group">
+				<label class="control-label" for="inputCPUs">CPUs **</label>
+				<div class="controls">
+					<input pattern="[0-9,-]+" type="text" id="inputCPUs" name="cpus" value="{{ settings.cpus }}" placeholder="All">
+					<span class="help-inline"><small>(e.g 0 or 0-1,3 or 0,3)</small></span>
+				</div>
+			</div>
+
+			<div class="control-group">
+				<label class="control-label" for="inputCPUShares">CPU Shares **</label>
+				<div class="controls">
+					<input pattern="[0-9]+" type="number" id="inputCPUShares" name="cpushares" min="16" step="2" value="{{ settings.shares }}" placeholder="1024">
+				</div>
+			</div>
+
+			<hr>
+
+			<div class="control-group">
+				<label class="control-label" for="inputRootfs">Root FS</label>
+				<div class="controls">
+					<input pattern="[a-zA-Z0-9_/\-]+" type="text" id="inputRootfs" name="rootfs" value="{{ settings.rootfs }}">
+					<span class="help-inline"><small>(e.g /var/lib/lxc/{{container}}/rootfs)</small></span>
+				</div>
+			</div>
+
+			<div class="control-group">
+				<div class="controls">
+					<button class="btn btn-primary btn-success" name="submit" value="apply"><i class="icon-ok icon-white"></i> Apply</button>
+				</div>
+			</div>
+
+			<p class="muted"><small>* Set to max to unset (unlimited)<br />** Leave empty to unset</small></p>
+		</form>
 
 
-		</div>
-		<div class="span3">
-			<ul class="nav nav-list">{% set span = {'RUNNING':'success','FROZEN':'info','STOPPED':'important'} %}
-				<li class="nav-header">Infos</li>
-				<li><strong>Status :</strong> <span class="label label-{{ span[infos.status] }}">{{ infos.status|capitalize }}</span></li>
-				{% if infos.status != 'STOPPED' %}<li><strong>Pid :</strong> {{ infos.pid }}</li>
-				<li><strong>Network :</strong> {% if settings.flags == 'up' %}<span class="label label-success">Up</span>{% else %}<span class="label label-important">Down</span>{% endif %}</li>
-				{% if infos.memusg %}<li id="{{ container }}"><strong>Mem. usage :</strong> {{ render_memory_wrapper(infos.memusg) }}</li>{% endif %}{% endif %}
-				<li><strong>Arch :</strong> {{ settings.arch }}</li>
-			</ul>
-		</div>
+	</div>
+	<div class="span3">
+		<ul class="nav nav-list">{% set span = {'RUNNING':'success','FROZEN':'info','STOPPED':'important'} %}
+			<li class="nav-header">Infos</li>
+			<li><strong>Status :</strong> <span class="label label-{{ span[infos.status] }}">{{ infos.status|capitalize }}</span></li>
+			{% if infos.status != 'STOPPED' %}<li><strong>Pid :</strong> {{ infos.pid }}</li>
+			<li><strong>Network :</strong> {% if settings.flags == 'up' %}<span class="label label-success">Up</span>{% else %}<span class="label label-important">Down</span>{% endif %}</li>
+			{% if infos.memusg %}<li id="{{ container }}"><strong>Mem. usage :</strong> {{ render_memory_wrapper(infos.memusg) }}</li>{% endif %}{% endif %}
+			<li><strong>Arch :</strong> {{ settings.arch }}</li>
+		</ul>
+	</div>
 {% endblock %}
 
 {% macro memory_color(value) -%}{% if value != 0 %}{% if 0 <= value <= 511 %}success{% elif 512 <= value < 980 %}warning{% else %}important{% endif %}{% endif %}{%- endmacro %}
@@ -145,8 +146,10 @@
 {%- endmacro %}
 
 {% block script %}
-		<script type="text/javascript">
-			{% if infos['status'] != 'STOPPED' %}function memory_color(value){
+	<script src="/static/js/bootstrapSwitch.js"></script>
+	<script type="text/javascript">
+		{% if infos['status'] != 'STOPPED' %}
+			function memory_color(value){
 				if(value != 0)
 					if ('0' <= value && value <= '512') return 'success';
 					else if ('512' <= value && value < '1024') return 'warning';
@@ -162,35 +165,32 @@
 			}
 
 			window.setInterval('refreshMemory("{{ container }}")', 5000);
-			{% endif %}
+		{% endif %}
 
-			$("#flagDown").on('click',function(){
-				$("#network").slideUp()
-				$("#flags").val('down');
-			});
+		// Network flags
+		var network = $("#network");
+		$(".switch-network-flags").on('switch-change', function(e, data){
+			if(data.value){
+				$(data.el).val('up');
+				network.delay(350).slideDown();
+			}
+			else{
+				$(data.el).val('down');
+				network.delay(350).slideUp();
+			}
+		});
 
-			$("#flagUp").on('click',function(){
-				$("#network").slideDown()
-				$("#flags").val('up');
-			});
-		</script>
-		<script type="text/javascript">
-			function updateMem(elem, value){
-				if (value < {{ host_memory.total }}) {
-					$('#' + elem).text(value + ' MB');
-				}
-				else {
-					$('#' + elem).text('Unlimited');
-				}
-			};
+		function updateMemInput(elem, value, mem_total){
+			if (value < mem_total) {
+				$('#' + elem).val(value).show().next('.help-inline').text('MB');
+			}
+			else {
+				$('#' + elem).val(mem_total).hide().next('.help-inline').text('Unlimited');
+			}
+		};
 
-			function updateSw(elem, value){
-				if (value < {{ host_memory.total * 2 }}) {
-					$('#' + elem).text(value + ' MB'); 
-				}
-				else {
-					$('#' + elem).text('Unlimited');
-				}
-			};
-		</script>
+		function updateMemSlider(elem, value){
+			$('#' + elem).val(value);
+		};
+	</script>
 {% endblock %}

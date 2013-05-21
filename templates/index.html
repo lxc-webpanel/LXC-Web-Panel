@@ -1,10 +1,15 @@
+{% set td = {'running':'success','frozen':'info','stopped':'important'} %}
+{% set tr = {'running':'success','frozen':'info','stopped':'error'} %}
+{% set disabled = {'running':'success','frozen':'info','stopped':'important'} %}
 {% extends "layout.html" %}
-{% block title %}Home{% endblock %}
+{% block title %}Overview{% endblock %}
 {% block content %}
 <div class="span9">
 	{{ super() }}
-	<p class="pull-right" style="margin:10px 10px 0 0;"><a class="btn btn-small btn-danger" data-toggle="modal" data-target="#reboot"><i class="icon-repeat icon-white"></i> Reboot</a></p>
-	<p class="pull-right" style="margin:10px 10px 0 0;"><a class="btn btn-small btn-success" data-toggle="modal" data-target="#createCT"><i class="icon-plus-sign icon-white"></i> Create <abbr title="Container">CT</abbr></a></p>
+	{% if session.su == 'Yes' %}<p class="pull-right" style="margin:10px 10px 0 0;"><a class="btn btn-small btn-danger" data-toggle="modal" data-target="#reboot"><i class="icon-off icon-white"></i> Reboot</a></p>
+	{% if containers != [] %}<p class="pull-right" style="margin:10px 10px 0 0;"><a class="btn btn-small btn-inverse" data-toggle="modal" data-target="#cloneCT"> <i class="icon-repeat icon-white"></i> Clone <abbr title="Container">CT</abbr></a></p>{% endif %}
+	<p class="pull-right" style="margin:10px 10px 0 0;"><a class="btn btn-small btn-success" data-toggle="modal" data-target="#createCT"><i class="icon-plus-sign icon-white"></i> Create <abbr title="Container">CT</abbr></a></p>{% endif %}
+
 	<div class="hero-unit">
 		{% if dist == 'Unknown' %}<div class="alert alert-error">LXC Web Panel is optimized for Ubuntu 12.10 !</div>{% endif %}
 		<div class="row">
@@ -20,7 +25,7 @@
 					<abbr title="Cached memory"><div class="bar bar-success" id="memory-cache-usage-bar" style="width: 0%;"></div></abbr>
 				</div>
 			</div>
-			<div class="span3" style="margin-top:60px; margin-left:20px;">
+			<div class="span3" style="margin-top:29px; margin-left:20px;">
 				<p>Disk usage : <span id="disk-usage" class="hide"></span></p>
 				<div class="progress" style="width:250px;">
 					<div class="bar" id="disk-usage-bar" style="width: 0%;"></div>
@@ -28,9 +33,9 @@
 				<p>Uptime : <span id="uptime" class="hide"></span></p>
 			</div>
 		</div>
-		<span class="label label-info hide" id="version" style="position:relative; float:right; bottom:0; margin:-20px -23px 0 0;">New version is out ! ()</span>
+		<a href="http://lxc-webpanel.github.io/" target="_blank"><span class="label label-info hide" id="version" style="position:relative; float:right; bottom:0; margin:-20px -23px 0 0;"><i class="icon-info-sign icon-white"></i> New version is out ! (<span id="vernumber"></span>)</span></a>
 	</div>
-	{% if containers != [] %}<table class="table">
+	<table class="table table-bordered">
 		<thead>
 			<tr>
 				<th>Status</th>
@@ -40,35 +45,43 @@
 				<th>Mem. usage</th>
 				<th>Actions</th>
 			</tr>
-		</thead>
-		<tbody>
-			{% set td = {'RUNNING':'success','FROZEN':'info','STOPPED':'important'} %}
-			{% set tr = {'RUNNING':'success','FROZEN':'info','STOPPED':'error'} %}
-			{% for i in containers_all %}
-				{% set disabled = {'RUNNING':'success','FROZEN':'info','STOPPED':'important'} %}
-				<tr class="{{ tr[i.status] }}">
-					<td><span class="label label-{{ td[i.status] }}">{{ i.status|capitalize }}</span></td>
-					<td><a href="../{{i.name}}/edit" title="Click to edit {{i.name}}">{{i.name}}</a></td>
-					<td>{{i.settings.utsname}}</td>
-					<td>{% if i.settings.flags == 'up' %}{% if i.settings.ipv4 != '' %}{{i.settings.ipv4}}{% else %}Undefined{% endif %}{% elif i.settings.flags == 'down' %}Link Down{% endif %}</td>
-					<td id="{{i.name}}">{{ render_memory_wrapper(i.memusg) }}</td>
-					<td>
-						<div class="btn-toolbar" style="margin:8px 0 8px 0;">
-							<div class="btn-group">
-								{% set start_action = {'STOPPED':'start','FROZEN':'unfreeze'} %}
-								<a class="btn btn-small {% if i.status == 'RUNNING' %}disabled{% endif %}" {% if i.status == 'STOPPED' or i.status == 'FROZEN' %}href="{{ url_for('action', name=i.name, action=start_action[i.status], token=session.token) }}"{% endif %}><i class="icon-play"></i> Start</a>
-								<a class="btn btn-small {% if i.status == 'STOPPED' %}disabled{% endif %}" {% if i.status == 'RUNNING' or i.status == 'FROZEN' %}href="{{ url_for('action', name=i.name, action='stop', token=session.token) }}"{% endif %}><i class="icon-stop"></i> Stop</a>
-								<a class="btn btn-small {% if i.status == 'FROZEN' or i.status == 'STOPPED' %}disabled{% endif %}" {% if i.status == 'RUNNING' %}href="{{ url_for('action', name=i.name, action='freeze', token=session.token) }}"{% endif %}><i class="icon-pause"></i> Freeze</a>
+		</thead>	
+		{% for status in containers_all %}
+			<tbody>
+				{% for container in status.containers %}
+					<tr class="{{ tr[status.status] }}">
+						{% if loop.first %}<td rowspan="{{ status.containers|count }}"><span class="label label-{{ td[status.status] }}">{{ status.status|capitalize }}</span></td>{% endif %}
+						<td><a href="{{ url_for('edit',container=container.name) }}" title="Click to edit {{container.name}}">{{container.name}}</a></td>
+						<td>{{container.settings.utsname}}</td>
+						<td>{% if container.settings.flags == 'up' %}{% if container.settings.ipv4 != '' %}{{container.settings.ipv4}}{% else %}Undefined{% endif %}{% elif container.settings.flags == 'down' %}Link Down{% endif %}</td>
+						<td id="{{container.name}}">{{ render_memory_wrapper(container.memusg) }}</td>
+						<td>
+							<div class="btn-toolbar" style="margin:8px 0;">
+								<div class="btn-group">
+									{% set start_action = {'stopped':'start','frozen':'unfreeze'} %}
+									<a class="btn btn-small{% if status.status == 'running' %} disabled{% endif %}"{% if status.status == 'stopped' or status.status == 'frozen' %} href="{{ url_for('action', name=container.name, action=start_action[status.status], token=session.token) }}"{% endif %}><i class="icon-play"></i> Start</a>
+									<a class="btn btn-small{% if status.status == 'stopped' %} disabled{% endif %}"{% if status.status == 'running' or status.status == 'frozen' %} href="{{ url_for('action', name=container.name, action='stop', token=session.token) }}"{% endif %}><i class="icon-stop"></i> Stop</a>
+									<a class="btn btn-small{% if status.status == 'frozen' or status.status == 'stopped' %} disabled{% endif %}"{% if status.status == 'running' %} href="{{ url_for('action', name=container.name, action='freeze', token=session.token) }}"{% endif %}><i class="icon-pause"></i> Freeze</a>
+								</div>
+								{% if session.su == 'Yes' %}<a class="pull-right close destroy" data-container-name="{{container.name}}" style="margin-top:4px;"><i class="icon-remove-sign"></i></a>{% endif %}
 							</div>
-							<a class="pull-right close destroy" data-container-name="{{i.name}}" style="margin-top:4px;"><i class="icon-remove-sign"></i></a>
-						</div>
-				</td>
-				</tr>
-			{% endfor %}
-		</tbody>
-	</table>{% endif %}
+						</td>
+					</tr>
+				{% endfor %}
+			</tbody>
+		{% endfor %}
+	</table>
 </div>
-{% include "includes/modals.html" %}
+{% if session.su == 'Yes' %}
+	{% include "includes/modal_reboot.html" %}
+	{% include "includes/modal_create.html" %}
+
+	{% if containers != [] %}
+		{% include "includes/modal_clone.html" %}
+		{% include "includes/modal_destroy.html" %}
+	{% endif %}
+{% endif %}
+
 {% endblock %}
 
 {% macro memory_color(value) -%}{% if value != 0 %}{% if 0 <= value <= 511 %}success{% elif 512 <= value < 980 %}warning{% else %}important{% endif %}{% endif %}{%- endmacro %}
@@ -77,6 +90,7 @@
 {%- endmacro %}
 
 {% block script %}
+<script src="/static/js/bootstrapSwitch.js"></script>
 <script type="text/javascript">
 			function refreshMemoryHost(){
 				$.getJSON($SCRIPT_ROOT + '/_refresh_memory_host', function(data) {
@@ -130,7 +144,8 @@
 			function check_version(){
 				$.getJSON($SCRIPT_ROOT + '/_check_version', function(data) {
 					if (data.latest > data.current) {
-						$('#version').text('New version is out ! ('+ data.latest +')').fadeIn().animate({"left": "-=25px"}, 65).animate({"left": "+=50px"}, 65).animate({"left": "-=50px"}, 65).animate({"left": "+=50px"}, 65).animate({"left": "-=50px"}, 65).animate({"left": "+=25px"}, 65).fadeTo(5000, 0.5);
+						$('#vernumber').text(data.latest)
+						$('#version').fadeIn().animate({"left": "-=25px"}, 65).animate({"left": "+=50px"}, 65).animate({"left": "-=50px"}, 65).animate({"left": "+=50px"}, 65).animate({"left": "-=50px"}, 65).animate({"left": "+=25px"}, 65).fadeTo(5000, 0.5);
 						$('#version').hover(function() {
 							$(this).fadeTo(400, 1);
 						},
@@ -154,42 +169,48 @@
 			$(function() {
 				refresh();
 				check_version();
-
+				{% if session.su == 'Yes' and containers == [] %}$('#createCT').modal('show'){% endif %}
 				window.setInterval('refresh()', 15000);
 			});
 
-			$(document).ready(function(){
+			{% if session.su == 'Yes' %}$(document).ready(function(){
 
 				var token = '{{ session.token }}';
 
-				 $(".destroy").on('click',function(e){
-					 $(".destroy-link").attr('href',"/action?action=destroy&token="+ token +"&name="+ $(this).data('container-name'));
-					 $('#destroy').modal('show');
-				 });
+				$(".destroy").on('click',function(e){
+					$(".destroy-link").attr('href',"/action?action=destroy&token="+ token +"&name="+ $(this).data('container-name'));
+					$('#destroy').modal('show');
+				});
 
-				 // Create CT
-				 $('#advancedbutton').click(function(e){ e.preventDefault(); $('#advanceddiv').slideToggle(); });
+				// Create CT
+				$('#advancedcreate').click(function(e){ e.preventDefault(); $('#advancedcreatediv').slideToggle(); });
 
-				 $("#BackingStore").on('change',function(){
+				// Clone CT
+				$('#advancedclone').click(function(e){ e.preventDefault(); $('#advancedclonediv').slideToggle(); });
+
+				$(".backingstore").on('change',function(){
 						var _val = $(this).val();
+						var _lvm = $(this).closest('.advanced-wrapper').find('.lvm');
+						var _directory = $(this).closest('.advanced-wrapper').find('.directory');
+						
 						if( _val == 'lvm'){
-							$('#lvm').slideDown();
-							$('#directory').slideUp();
+							_lvm.slideDown();
+							_directory.slideUp();
 						}
 						else if ( _val == 'directory' ){
-							$('#directory').slideDown();
-							$('#lvm').slideUp();
+							_directory.slideDown();
+							_lvm.slideUp();
 						}
 						else{
-							$('#directory').slideUp();
-							$('#lvm').slideUp();
+							_directory.slideUp();
+							_lvm.slideUp();
 						}
 					});
+
 					$('.modalbutton').on('click', function () {
 						$('.buttons-modal-footer').slideUp()
 						$('.loader-modal-footer').slideDown()
 					})
-
-			});
+			});{% endif %}
 </script>
 {% endblock %}

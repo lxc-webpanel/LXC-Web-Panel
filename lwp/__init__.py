@@ -12,20 +12,20 @@ import re
 class CalledProcessError(Exception): pass
 
 cgroup = {}
-cgroup['type']      = 'lxc.network.type'
-cgroup['link']      = 'lxc.network.link'
-cgroup['flags']     = 'lxc.network.flags'
-cgroup['hwaddr']    = 'lxc.network.hwaddr'
-cgroup['rootfs']    = 'lxc.rootfs'
-cgroup['utsname']   = 'lxc.utsname'
-cgroup['arch']      = 'lxc.arch'
-cgroup['ipv4']      = 'lxc.network.ipv4'
-cgroup['memlimit']  = 'lxc.cgroup.memory.limit_in_bytes'
-cgroup['swlimit']   = 'lxc.cgroup.memory.memsw.limit_in_bytes'
-cgroup['cpus']      = 'lxc.cgroup.cpuset.cpus'
-cgroup['shares']    = 'lxc.cgroup.cpu.shares'
-cgroup['deny']      = 'lxc.cgroup.devices.deny'
-cgroup['allow']     = 'lxc.cgroup.devices.allow'
+cgroup['type'] = 'lxc.network.type'
+cgroup['link'] = 'lxc.network.link'
+cgroup['flags'] = 'lxc.network.flags'
+cgroup['hwaddr'] = 'lxc.network.hwaddr'
+cgroup['rootfs'] = 'lxc.rootfs'
+cgroup['utsname'] = 'lxc.utsname'
+cgroup['arch'] = 'lxc.arch'
+cgroup['ipv4'] = 'lxc.network.ipv4'
+cgroup['memlimit'] = 'lxc.cgroup.memory.limit_in_bytes'
+cgroup['swlimit'] = 'lxc.cgroup.memory.memsw.limit_in_bytes'
+cgroup['cpus'] = 'lxc.cgroup.cpuset.cpus'
+cgroup['shares'] = 'lxc.cgroup.cpu.shares'
+cgroup['deny'] = 'lxc.cgroup.devices.deny'
+cgroup['allow'] = 'lxc.cgroup.devices.allow'
 
 class FakeSection(object):
     def __init__(self, fp):
@@ -33,9 +33,13 @@ class FakeSection(object):
         self.sechead = '[DEFAULT]\n'
     def readline(self):
         if self.sechead:
-            try: return self.sechead
-            finally: self.sechead = None
-        else: return self.fp.readline()
+            try:
+                return self.sechead
+            finally:
+                self.sechead = None
+        else:
+            return self.fp.readline()
+
 
 def DelSection(filename=None):
     if filename:
@@ -48,8 +52,9 @@ def DelSection(filename=None):
                 del read[i]
                 break
         load = open(filename, 'w')
-        load.writelines(read) 
+        load.writelines(read)
         load.close()
+
 
 def file_exist(filename):
     '''
@@ -59,18 +64,25 @@ def file_exist(filename):
         with open(filename) as f:
             f.close()
             return True
-    except IOError as e:
+    except IOError:
         return False
 
-def ls():
+
+def ls_auto():
     '''
-    return a list of all containers
+    returns a list of autostart containers
     '''
-    try: ct_list = os.listdir('/var/lib/lxc/')
-    except OSError: ct_list = []
-    return sorted(ct_list)
+    try:
+        auto_list = os.listdir('/etc/lxc/auto/')
+    except OSError:
+        auto_list = []
+    return auto_list
+
 
 def memory_usage(name):
+    '''
+    returns memory usage in MB
+    '''
     if not exists(name):
         raise ContainerNotExists("The container (%s) does not exist!" % name)
     if name in stopped():
@@ -81,6 +93,7 @@ def memory_usage(name):
     except:
         return 0
     return int(out[0])/1024/1024
+
 
 def host_memory_usage():
     '''
@@ -107,9 +120,10 @@ def host_memory_usage():
     out.close()
     used = (total - (free + buffers + cached))
     return {'percent': int((used/total)*100),
-            'percent_cached':int(((cached)/total)*100),
+            'percent_cached': int(((cached)/total)*100),
             'used': int(used/1024),
             'total': int(total/1024)}
+
 
 def host_cpu_percent():
     '''
@@ -132,7 +146,8 @@ def host_cpu_percent():
     percent = 100 * (intervaltotal - (idle - previdle)) / intervaltotal
     return str('%.1f' % percent)
 
-def host_disk_usage():
+
+def host_disk_usage(partition=None):
     '''
     returns a dict of disk usage values
                     {'total': usage[1],
@@ -140,11 +155,14 @@ def host_disk_usage():
                     'free': usage[3],
                     'percent': usage[4]}
     '''
-    usage = subprocess.check_output(['df -h /'], shell=True).split('\n')[1].split()
+    if not partition:
+        partition = '/'
+    usage = subprocess.check_output(['df -h %s' % partition], shell=True).split('\n')[1].split()
     return {'total': usage[1],
             'used': usage[2],
             'free': usage[3],
             'percent': usage[4]}
+
 
 def host_uptime():
     '''
@@ -159,7 +177,8 @@ def host_uptime():
     days = uptime / 60 / 60 / 24
     f.close()
     return {'day': days,
-            'time': '%d:%02d' % (hours,minutes)}
+            'time': '%d:%02d' % (hours, minutes)}
+
 
 def check_ubuntu():
     '''
@@ -174,6 +193,7 @@ def check_ubuntu():
         return dist
     return 'unknown'
 
+
 def get_templates_list():
     '''
     returns a sorted lxc templates list
@@ -181,14 +201,17 @@ def get_templates_list():
     templates = []
     path = None
 
-    try: path = os.listdir('/usr/share/lxc/templates')
-    except: path = os.listdir('/usr/lib/lxc/templates') 
+    try:
+        path = os.listdir('/usr/share/lxc/templates')
+    except:
+        path = os.listdir('/usr/lib/lxc/templates') 
 
     if path:
         for line in path:
                 templates.append(line.replace('lxc-', ''))
 
     return sorted(templates)
+
 
 def check_version():
     '''
@@ -201,6 +224,7 @@ def check_version():
     return {'current':current,
             'latest':latest}
 
+
 def get_net_settings():
     '''
     returns a dict of all known settings for LXC networking
@@ -211,14 +235,15 @@ def get_net_settings():
     config = ConfigParser.SafeConfigParser()
     cfg = {}
     config.readfp(FakeSection(open(filename)))
-    cfg['use']      = config.get('DEFAULT', 'USE_LXC_BRIDGE').strip('"')
-    cfg['bridge']   = config.get('DEFAULT', 'LXC_BRIDGE').strip('"')
-    cfg['address']  = config.get('DEFAULT', 'LXC_ADDR').strip('"')
-    cfg['netmask']  = config.get('DEFAULT', 'LXC_NETMASK').strip('"')
-    cfg['network']  = config.get('DEFAULT', 'LXC_NETWORK').strip('"')
-    cfg['range']    = config.get('DEFAULT', 'LXC_DHCP_RANGE').strip('"')
-    cfg['max']      = config.get('DEFAULT', 'LXC_DHCP_MAX').strip('"')
+    cfg['use'] = config.get('DEFAULT', 'USE_LXC_BRIDGE').strip('"')
+    cfg['bridge'] = config.get('DEFAULT', 'LXC_BRIDGE').strip('"')
+    cfg['address'] = config.get('DEFAULT', 'LXC_ADDR').strip('"')
+    cfg['netmask'] = config.get('DEFAULT', 'LXC_NETMASK').strip('"')
+    cfg['network'] = config.get('DEFAULT', 'LXC_NETWORK').strip('"')
+    cfg['range'] = config.get('DEFAULT', 'LXC_DHCP_RANGE').strip('"')
+    cfg['max'] = config.get('DEFAULT', 'LXC_DHCP_MAX').strip('"')
     return cfg
+
 
 def get_container_settings(name):
     '''
@@ -278,11 +303,18 @@ def get_container_settings(name):
         cfg['shares'] = config.get('DEFAULT', cgroup['shares'])
     except ConfigParser.NoOptionError:
         cfg['shares'] = ''
+
+    if '%s.conf' % name in ls_auto():
+        cfg['auto'] = True
+    else:
+        cfg['auto'] = False
+
     return cfg
+
 
 def push_net_value(key, value, filename='/etc/default/lxc'):
     '''
-    Raplace a var in the lxc-net config file
+    replace a var in the lxc-net config file
     '''
     if filename:
         config = ConfigParser.RawConfigParser()
@@ -311,15 +343,37 @@ def push_net_value(key, value, filename='/etc/default/lxc'):
                     read[i] = '%s=\"%s\"\n' % (split[0].upper(), split[1])
             i += 1
         load = open(filename, 'w')
-        load.writelines(read) 
+        load.writelines(read)
         load.close()
+
 
 def push_config_value(key, value, container=None):
     '''
-    Raplace a var in a container config file
+    replace a var in a container config file
     '''
+
+    def save_cgroup_devices(filename=None):
+        '''
+        returns multiple values (lxc.cgroup.devices.deny and lxc.cgroup.devices.allow) in a list.
+        because ConfigParser cannot make this...
+        '''
+        if filename:
+            values = []
+            i = 0
+
+            load = open(filename, 'r')
+            read = load.readlines()
+            load.close()
+
+            while i < len(read):
+                if not read[i].startswith('#') and re.match('lxc.cgroup.devices.deny|lxc.cgroup.devices.allow', read[i]):
+                    values.append(read[i])
+                i += 1
+            return values
+
     if container:
         filename = '/var/lib/lxc/%s/config' % container
+        save = save_cgroup_devices(filename=filename)
 
         config = ConfigParser.RawConfigParser()
         config.readfp(FakeSection(open(filename)))
@@ -339,6 +393,10 @@ def push_config_value(key, value, container=None):
             config.write(configfile)
 
         DelSection(filename=filename)
+
+        with open(filename, "a") as configfile:
+            configfile.writelines(save)
+
 
 def net_restart():
     '''
