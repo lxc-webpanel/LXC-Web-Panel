@@ -76,15 +76,21 @@ def clone(orig=None, new=None, snapshot=False):
 
 def info(container):
     '''
-    Check info from lxc-info*
-        *I hope that the LXC developers will not change this output
+    Check info from lxc-info
     '''
     if not exists(container): raise ContainerDoesntExists('Container {} does not exist!'.format(container))
 
     output = _run('lxc-info -qn {}'.format(container), output=True).splitlines()
+    
+    state = output[0].split()[1]
 
-    return {'state': output[0].split()[1],
-            'pid': output[1].split()[1]}
+    if state == 'STOPPED':
+        pid = "0"
+    else:
+        pid = output[1].split()[1]
+
+    return {'state': state,
+            'pid': pid}
 
 
 def ls():
