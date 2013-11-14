@@ -42,7 +42,7 @@
 {% if nb_users.num > 1 %}{% include "includes/modal_delete.html" %}{% endif %}
 {% endblock %}
 {% block script %}
-	<script src="../static/js/bootstrapSwitch.js"></script>
+	<script src="{{ url_for('static', filename='js/bootstrapSwitch.js') }}"></script>
 	{% if nb_users.num > 1 %}
 		<script type="text/javascript">
 			var token = '{{ session.token }}';

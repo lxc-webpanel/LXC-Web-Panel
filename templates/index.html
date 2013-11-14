@@ -90,7 +90,7 @@
 {%- endmacro %}
 
 {% block script %}
-<script src="/static/js/bootstrapSwitch.js"></script>
+<script src="{{ url_for('static', filename='js/bootstrapSwitch.js') }}"></script>
 <script type="text/javascript">
 			function refreshMemoryHost(){
 				$.getJSON($SCRIPT_ROOT + '/_refresh_memory_host', function(data) {
@@ -178,7 +178,7 @@
 				var token = '{{ session.token }}';
 
 				$(".destroy").on('click',function(e){
-					$(".destroy-link").attr('href',"/action?action=destroy&token="+ token +"&name="+ $(this).data('container-name'));
+					$(".destroy-link").attr('href',"{{url_for('action', action='destroy') }}" + "&token="+ token +"&name="+ $(this).data('container-name'));
 					$('#destroy').modal('show');
 				});
 
