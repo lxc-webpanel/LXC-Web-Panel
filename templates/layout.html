@@ -7,10 +7,10 @@
 		<meta name="description" content="">
 		<meta name="author" content="Antoine Tanzilli, Elie Deloumeau-Prigent">
 
-		<link href="../static/css/bootstrap.css" rel="stylesheet">
-		<link href="../static/css/bootstrap-responsive.min.css" rel="stylesheet">
+		<link href="{{ url_for('static', filename='css/bootstrap.css') }}" rel="stylesheet">
+		<link href="{{ url_for('static', filename='css/bootstrap-responsive.min.css') }}" rel="stylesheet">
 
-		<link href="../static/css/bootstrapSwitch.css" rel="stylesheet">
+		<link href="{{ url_for('static', filename='css/bootstrapSwitch.css') }}" rel="stylesheet">
 
 		<style type="text/css">
 			html, body {height: 100%;}
@@ -33,7 +33,7 @@
 		<!--[if lt IE 9]>
 			<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
 		<![endif]-->
-		<link rel="shortcut icon" href="../static/ico/favicon.ico">
+		<link rel="shortcut icon" href="{{ url_for('static', filename='ico/favicon.ico') }}">
 
 	</head>
 
@@ -80,9 +80,9 @@
 		<!-- Placed at the end of the document so the pages load faster -->
 		<script> var $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};</script>
 		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-		<script src="../static/js/bootstrap.min.js"></script>
-		<script src="../static/js/jqBootstrapValidation.js"></script>
-		<script src="../static/js/html5slider.js"></script>
+		<script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+		<script src="{{ url_for('static', filename='js/jqBootstrapValidation.js') }}"></script>
+		<script src="{{ url_for('static', filename='js/html5slider.js') }}"></script>
 		<script>
 				$(function() {
 						$(".alert").not('.dont-hide').alert().delay(5000).slideUp();

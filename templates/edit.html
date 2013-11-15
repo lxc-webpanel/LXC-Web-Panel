@@ -146,7 +146,7 @@
 {%- endmacro %}
 
 {% block script %}
-	<script src="/static/js/bootstrapSwitch.js"></script>
+	<script src="{{ url_for('static', filename='js/bootstrapSwitch.js') }}"></script>
 	<script type="text/javascript">
 		{% if infos['status'] != 'STOPPED' %}
 			function memory_color(value){
