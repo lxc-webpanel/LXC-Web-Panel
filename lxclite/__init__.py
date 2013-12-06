@@ -56,7 +56,7 @@ def create(container, template='ubuntu', storage=None, xargs=None):
     command = 'lxc-create -n {}'.format(container)
     command += ' -t {}'.format(template)
     if storage: command += ' -B {}'.format(storage)
-    if xargs: command += ' -- {}'.format(storage)
+    if xargs: command += ' -- {}'.format(xargs)
             
     return _run(command)
 
