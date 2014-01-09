@@ -229,7 +229,9 @@ def get_net_settings():
     '''
     returns a dict of all known settings for LXC networking
     '''
-    filename = '/etc/default/lxc'
+    filename = '/etc/default/lxc-net'
+    if not file_exist(filename):
+        filename = '/etc/default/lxc'
     if not file_exist(filename):
         return False
     config = ConfigParser.SafeConfigParser()
