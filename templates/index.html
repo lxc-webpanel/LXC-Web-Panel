@@ -191,15 +191,23 @@
 				$(".backingstore").on('change',function(){
 						var _val = $(this).val();
 						var _lvm = $(this).closest('.advanced-wrapper').find('.lvm');
+						var _zfs = $(this).closest('.advanced-wrapper').find('.zfs');
 						var _directory = $(this).closest('.advanced-wrapper').find('.directory');
 						
 						if( _val == 'lvm'){
 							_lvm.slideDown();
 							_directory.slideUp();
+							_zfs.slideUp();
 						}
 						else if ( _val == 'directory' ){
 							_directory.slideDown();
 							_lvm.slideUp();
+							_zfs.slideUp();
+						}
+						else if ( _val == 'zfs'){
+							_zfs.slideDown();
+							_lvm.slideUp();
+							_directory.slideUp();
 						}
 						else{
 							_directory.slideUp();

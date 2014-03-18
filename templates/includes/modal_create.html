@@ -36,6 +36,7 @@
 								<option value="default" selected>Default</option>
 								<option value="directory">Directory</option>
 								<option value="lvm">LVM</option>
+								<option value="zfs">ZFS</option>
 						</select>
 					</div>
 					<span class="help-inline"><small>*By default it is 'none', which is a simple directory tree under /var/lib/lxc/&lt;name&gt;/rootfs</small></span>
@@ -57,6 +58,12 @@
 						<input type="text" id="inputFS" name="fstype" placeholder="ext4">
 						<label class="control-label" for="inputFSSize">Size</label>
 						<input type="text" id="inputFSSize" name="fssize" placeholder="500M">
+					</div>
+				</div>
+				<div class="control-group hide zfs">
+					<div class="controls">
+						<label class="control-label" for="zpoolname">zpool Name</label>
+						<input type="text" id="inputZFS" name="zpoolname" placeholder="lxc"> 
 					</div>
 				</div>
 			</div>
