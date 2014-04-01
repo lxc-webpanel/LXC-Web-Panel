@@ -185,13 +185,7 @@ def check_ubuntu():
     return the System version
     '''
     dist = '%s %s' % (platform.linux_distribution()[0], platform.linux_distribution()[1])
-    if dist == 'Ubuntu 12.04':
-        return dist
-    elif dist == 'Ubuntu 12.10':
-        return dist
-    elif dist == 'Ubuntu 13.04':
-        return dist
-    return 'unknown'
+    return dist
 
 
 def get_templates_list():
