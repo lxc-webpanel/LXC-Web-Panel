@@ -1,13 +1,23 @@
 import sys
 sys.path.append('../')
-from lxclite import exists, stopped
+from lxclite import exists, stopped, ContainerDoesntExists
 import subprocess
 import os
 import platform
 import time
-import urllib2
-import ConfigParser
 import re
+
+from io import StringIO
+
+try:
+    from urllib.request import urlopen
+except ImportError:
+    from urllib2 import urlopen
+
+try:
+    import configparser
+except ImportError:
+    import ConfigParser as configparser
 
 class CalledProcessError(Exception): pass
 
@@ -27,18 +37,11 @@ cgroup['shares'] = 'lxc.cgroup.cpu.shares'
 cgroup['deny'] = 'lxc.cgroup.devices.deny'
 cgroup['allow'] = 'lxc.cgroup.devices.allow'
 
-class FakeSection(object):
-    def __init__(self, fp):
-        self.fp = fp
-        self.sechead = '[DEFAULT]\n'
-    def readline(self):
-        if self.sechead:
-            try:
-                return self.sechead
-            finally:
-                self.sechead = None
-        else:
-            return self.fp.readline()
+
+def FakeSection(fp):
+    content = u"[DEFAULT]\n%s" % fp.read()
+
+    return StringIO(content)
 
 
 def DelSection(filename=None):
@@ -84,7 +87,7 @@ def memory_usage(name):
     returns memory usage in MB
     '''
     if not exists(name):
-        raise ContainerNotExists("The container (%s) does not exist!" % name)
+        raise ContainerDoesntExists("The container (%s) does not exist!" % name)
     if name in stopped():
         return 0
     cmd = ['lxc-cgroup -n %s memory.usage_in_bytes' % name]
@@ -214,7 +217,7 @@ def check_version():
     f = open('version')
     current = float(f.read())
     f.close()
-    latest = float(urllib2.urlopen('http://lxc-webpanel.github.com/version').read())
+    latest = float(urlopen('http://lxc-webpanel.github.com/version').read())
     return {'current':current,
             'latest':latest}
 
@@ -228,7 +231,7 @@ def get_net_settings():
         filename = '/etc/default/lxc'
     if not file_exist(filename):
         return False
-    config = ConfigParser.SafeConfigParser()
+    config = configparser.SafeConfigParser()
     cfg = {}
     config.readfp(FakeSection(open(filename)))
     cfg['use'] = config.get('DEFAULT', 'USE_LXC_BRIDGE').strip('"')
@@ -248,56 +251,56 @@ def get_container_settings(name):
     filename = '/var/lib/lxc/%s/config' % name
     if not file_exist(filename):
         return False
-    config = ConfigParser.SafeConfigParser()
+    config = configparser.SafeConfigParser()
     cfg = {}
     config.readfp(FakeSection(open(filename)))
     try:
         cfg['type'] = config.get('DEFAULT', cgroup['type'])
-    except ConfigParser.NoOptionError:
+    except configparser.NoOptionError:
         cfg['type'] = ''
     try:
         cfg['link'] = config.get('DEFAULT', cgroup['link'])
-    except ConfigParser.NoOptionError:
+    except configparser.NoOptionError:
         cfg['link'] = ''
     try:
         cfg['flags'] = config.get('DEFAULT', cgroup['flags'])
-    except ConfigParser.NoOptionError:
+    except configparser.NoOptionError:
         cfg['flags'] = ''
     try:
         cfg['hwaddr'] = config.get('DEFAULT', cgroup['hwaddr'])
-    except ConfigParser.NoOptionError:
+    except configparser.NoOptionError:
         cfg['hwaddr'] = ''
     try:
         cfg['rootfs'] = config.get('DEFAULT', cgroup['rootfs'])
-    except ConfigParser.NoOptionError:
+    except configparser.NoOptionError:
         cfg['rootfs'] = ''
     try:
         cfg['utsname'] = config.get('DEFAULT', cgroup['utsname'])
-    except ConfigParser.NoOptionError:
+    except configparser.NoOptionError:
         cfg['utsname'] = ''
     try:
         cfg['arch'] = config.get('DEFAULT', cgroup['arch'])
-    except ConfigParser.NoOptionError:
+    except configparser.NoOptionError:
         cfg['arch'] = ''
     try:
         cfg['ipv4'] = config.get('DEFAULT', cgroup['ipv4'])
-    except ConfigParser.NoOptionError:
+    except configparser.NoOptionError:
         cfg['ipv4'] = ''
     try:
         cfg['memlimit'] = re.sub(r'[a-zA-Z]', '', config.get('DEFAULT', cgroup['memlimit']))
-    except ConfigParser.NoOptionError:
+    except configparser.NoOptionError:
         cfg['memlimit'] = ''
     try:
         cfg['swlimit'] = re.sub(r'[a-zA-Z]', '', config.get('DEFAULT', cgroup['swlimit']))
-    except ConfigParser.NoOptionError:
+    except configparser.NoOptionError:
         cfg['swlimit'] = ''
     try:
         cfg['cpus'] = config.get('DEFAULT', cgroup['cpus'])
-    except ConfigParser.NoOptionError:
+    except configparser.NoOptionError:
         cfg['cpus'] = ''
     try:
         cfg['shares'] = config.get('DEFAULT', cgroup['shares'])
-    except ConfigParser.NoOptionError:
+    except configparser.NoOptionError:
         cfg['shares'] = ''
 
     if '%s.conf' % name in ls_auto():
@@ -313,7 +316,7 @@ def push_net_value(key, value, filename='/etc/default/lxc'):
     replace a var in the lxc-net config file
     '''
     if filename:
-        config = ConfigParser.RawConfigParser()
+        config = configparser.RawConfigParser()
         config.readfp(FakeSection(open(filename)))
         if not value:
             config.remove_option('DEFAULT', key)
@@ -351,7 +354,7 @@ def push_config_value(key, value, container=None):
     def save_cgroup_devices(filename=None):
         '''
         returns multiple values (lxc.cgroup.devices.deny and lxc.cgroup.devices.allow) in a list.
-        because ConfigParser cannot make this...
+        because configparser cannot make this...
         '''
         if filename:
             values = []
@@ -371,7 +374,7 @@ def push_config_value(key, value, container=None):
         filename = '/var/lib/lxc/%s/config' % container
         save = save_cgroup_devices(filename=filename)
 
-        config = ConfigParser.RawConfigParser()
+        config = configparser.RawConfigParser()
         config.readfp(FakeSection(open(filename)))
         if not value:
             config.remove_option('DEFAULT', key)
