@@ -1,11 +1,40 @@
+# LXC Python Library
+# for compatibility with LXC 0.8 and 0.9
+# on Ubuntu 12.04/12.10/13.04
+
+# Author: Elie Deloumeau
+# Contact: elie@deloumeau.fr
+
+# The MIT License (MIT)
+# Copyright (c) 2013 Elie Deloumeau
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+
 import sys
 sys.path.append('../')
 from lxclite import exists, stopped, ContainerDoesntExists
-import subprocess
+
 import os
 import platform
-import time
 import re
+import subprocess
+import time
 
 from io import StringIO
 
@@ -19,7 +48,9 @@ try:
 except ImportError:
     import ConfigParser as configparser
 
-class CalledProcessError(Exception): pass
+
+class CalledProcessError(Exception):
+    pass
 
 cgroup = {}
 cgroup['type'] = 'lxc.network.type'
@@ -87,12 +118,16 @@ def memory_usage(name):
     returns memory usage in MB
     '''
     if not exists(name):
-        raise ContainerDoesntExists("The container (%s) does not exist!" % name)
+        raise ContainerDoesntExists(
+            "The container (%s) does not exist!" % name)
+
     if name in stopped():
         return 0
+
     cmd = ['lxc-cgroup -n %s memory.usage_in_bytes' % name]
     try:
-        out = subprocess.check_output(cmd, shell=True).splitlines()
+        out = subprocess.check_output(cmd, shell=True,
+                                      universal_newlines=True).splitlines()
     except:
         return 0
     return int(out[0])/1024/1024
@@ -136,7 +171,8 @@ def host_cpu_percent():
     line = f.readlines()[0]
     data = line.split()
     previdle = float(data[4])
-    prevtotal = float(data[1]) + float(data[2]) + float(data[3]) + float(data[4])
+    prevtotal = float(data[1]) + float(data[2]) + \
+        float(data[3]) + float(data[4])
     f.close()
     time.sleep(0.1)
     f = open('/proc/stat', 'r')
@@ -160,7 +196,10 @@ def host_disk_usage(partition=None):
     '''
     if not partition:
         partition = '/'
-    usage = subprocess.check_output(['df -h %s' % partition], shell=True).split('\n')[1].split()
+
+    usage = subprocess.check_output(['df -h %s' % partition],
+                                    universal_newlines=True,
+                                    shell=True).split('\n')[1].split()
     return {'total': usage[1],
             'used': usage[2],
             'free': usage[3],
@@ -187,7 +226,8 @@ def check_ubuntu():
     '''
     return the System version
     '''
-    dist = '%s %s' % (platform.linux_distribution()[0], platform.linux_distribution()[1])
+    dist = '%s %s' % (platform.linux_distribution()[0],
+                      platform.linux_distribution()[1])
     return dist
 
 
@@ -201,7 +241,7 @@ def get_templates_list():
     try:
         path = os.listdir('/usr/share/lxc/templates')
     except:
-        path = os.listdir('/usr/lib/lxc/templates') 
+        path = os.listdir('/usr/lib/lxc/templates')
 
     if path:
         for line in path:
@@ -218,8 +258,8 @@ def check_version():
     current = float(f.read())
     f.close()
     latest = float(urlopen('http://lxc-webpanel.github.com/version').read())
-    return {'current':current,
-            'latest':latest}
+    return {'current': current,
+            'latest': latest}
 
 
 def get_net_settings():
@@ -287,11 +327,13 @@ def get_container_settings(name):
     except configparser.NoOptionError:
         cfg['ipv4'] = ''
     try:
-        cfg['memlimit'] = re.sub(r'[a-zA-Z]', '', config.get('DEFAULT', cgroup['memlimit']))
+        cfg['memlimit'] = re.sub(r'[a-zA-Z]', '',
+                                 config.get('DEFAULT', cgroup['memlimit']))
     except configparser.NoOptionError:
         cfg['memlimit'] = ''
     try:
-        cfg['swlimit'] = re.sub(r'[a-zA-Z]', '', config.get('DEFAULT', cgroup['swlimit']))
+        cfg['swlimit'] = re.sub(r'[a-zA-Z]', '',
+                                config.get('DEFAULT', cgroup['swlimit']))
     except configparser.NoOptionError:
         cfg['swlimit'] = ''
     try:
@@ -353,8 +395,9 @@ def push_config_value(key, value, container=None):
 
     def save_cgroup_devices(filename=None):
         '''
-        returns multiple values (lxc.cgroup.devices.deny and lxc.cgroup.devices.allow) in a list.
-        because configparser cannot make this...
+        returns multiple values (lxc.cgroup.devices.deny and
+        lxc.cgroup.devices.allow) in a list because configparser cannot
+        make this...
         '''
         if filename:
             values = []
@@ -365,7 +408,9 @@ def push_config_value(key, value, container=None):
             load.close()
 
             while i < len(read):
-                if not read[i].startswith('#') and re.match('lxc.cgroup.devices.deny|lxc.cgroup.devices.allow', read[i]):
+                if not read[i].startswith('#') and \
+                        re.match('lxc.cgroup.devices.deny|'
+                                 'lxc.cgroup.devices.allow', read[i]):
                     values.append(read[i])
                 i += 1
             return values
@@ -378,13 +423,15 @@ def push_config_value(key, value, container=None):
         config.readfp(FakeSection(open(filename)))
         if not value:
             config.remove_option('DEFAULT', key)
-        elif key == cgroup['memlimit'] or key == cgroup['swlimit'] and value != False:
+        elif key == cgroup['memlimit'] or key == cgroup['swlimit'] \
+                and value is not False:
             config.set('DEFAULT', key, '%sM' % value)
         else:
             config.set('DEFAULT', key, value)
 
         # Bugfix (can't duplicate keys with config parser)
-        if config.has_option('DEFAULT', cgroup['deny']) or config.has_option('DEFAULT', cgroup['allow']):
+        if config.has_option('DEFAULT', cgroup['deny']) or \
+                config.has_option('DEFAULT', cgroup['allow']):
             config.remove_option('DEFAULT', cgroup['deny'])
             config.remove_option('DEFAULT', cgroup['allow'])
 
