@@ -5,13 +5,16 @@ import subprocess
 import time
 import re
 import hashlib
-import signal
 import sqlite3
 import os
-import ConfigParser
+
+try:
+    import configparser
+except ImportError:
+    import ConfigParser as configparser
 
 # configuration
-config = ConfigParser.SafeConfigParser()
+config = configparser.SafeConfigParser()
 config.readfp(open('lwp.conf'))
 
 SECRET_KEY = '\xb13\xb6\xfb+Z\xe8\xd1n\x80\x9c\xe7KM\x1c\xc1\xa7\xf8\xbeY\x9a\xfa<.'
@@ -672,11 +675,11 @@ def check_version():
 
 
 def hash_passwd(passwd):
-    return hashlib.sha512(passwd).hexdigest()
+    return hashlib.sha512(passwd.encode()).hexdigest()
 
 
 def get_token():
-    return hashlib.md5(str(time.time())).hexdigest()
+    return hashlib.md5(str(time.time()).encode()).hexdigest()
 
 
 def query_db(query, args=(), one=False):
