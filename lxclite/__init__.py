@@ -144,7 +144,11 @@ def ls():
     Note: Directory mode for Ubuntu 12/13 compatibility
     '''
 
-    base_path = '/var/lib/lxc'
+    if os.geteuid():
+        base_path = os.path.expanduser("~/.local/share/lxc/")
+    else:
+        base_path = '/var/lib/lxc'
+
     try:
         ct_list = [x for x in os.listdir(base_path)
                    if os.path.isdir(os.path.join(base_path, x))]
