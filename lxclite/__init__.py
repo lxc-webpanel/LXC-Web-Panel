@@ -123,7 +123,7 @@ def info(container):
         raise ContainerDoesntExists(
             'Container {} does not exist!'.format(container))
 
-    output = _run('lxc-info -qn {}'.format(container),
+    output = _run('lxc-info -qn {}|grep -i "State\|PID"'.format(container),
                   output=True).splitlines()
 
     state = output[0].split()[1]
