@@ -713,7 +713,7 @@ def create_container():
                 elif storage_method == 'zfs':
                     zfs = request.form['zpoolname']
 
-                    if re.match('^[a-zA-Z0-9_-]+$', zfs) and zfs != '':
+                    if re.match('^[a-zA-Z0-9_/-]+$', zfs) and zfs != '':
                         try:
                             if lxc.create(name, template=template, storage='zfs --zfsroot %s' % zfs, xargs=command) == 0:
                                 flash(u'Container %s created successfully!' % name, 'success')
