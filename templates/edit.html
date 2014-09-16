@@ -112,7 +112,7 @@
 			<div class="control-group">
 				<label class="control-label" for="inputRootfs">Root FS</label>
 				<div class="controls">
-					<input pattern="[a-zA-Z0-9_/\-]+" type="text" id="inputRootfs" name="rootfs" value="{{ settings.rootfs }}">
+					<input pattern="[a-zA-Z0-9_/\-\.]+" type="text" id="inputRootfs" name="rootfs" value="{{ settings.rootfs }}">
 					<span class="help-inline"><small>(e.g /var/lib/lxc/{{container}}/rootfs)</small></span>
 				</div>
 			</div>
