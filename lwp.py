@@ -279,7 +279,7 @@ def edit(container=None):
                 flash(u'CPU shares updated for %s!' % container, 'success')
 
             if form['rootfs'] != cfg['rootfs'] and \
-                    re.match('^[a-zA-Z0-9_/\-]+', form['rootfs']):
+                    re.match('^[a-zA-Z0-9_/\-\.]+', form['rootfs']):
                 lwp.push_config_value('lxc.rootfs', form['rootfs'],
                                       container=container)
                 flash(u'Rootfs updated!' % container, 'success')
