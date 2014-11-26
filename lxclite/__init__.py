@@ -151,7 +151,7 @@ def ls():
 
     try:
         ct_list = [x for x in os.listdir(base_path)
-                   if os.path.isdir(os.path.join(base_path, x))]
+                   if os.path.isdir(os.path.join(base_path, x)) and os.path.exists(os.path.join(base_path, x, 'config'))]
     except OSError:
         ct_list = []
 
