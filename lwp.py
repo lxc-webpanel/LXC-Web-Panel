@@ -737,7 +737,7 @@ def create_container():
                         storage_options += ' --vgname %s' % vgname
                     if re.match('^[a-z0-9]+$', fstype) and fstype != '':
                         storage_options += ' --fstype %s' % fstype
-                    if re.match('^[0-9][G|M]$', fssize) and fssize != '':
+                    if re.match('^[1-9][0-9]*[G|M]$', fssize) and fssize != '':
                         storage_options += ' --fssize %s' % fssize
 
                     try:
