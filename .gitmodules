@@ -1,0 +1,6 @@
+[submodule "dashboard"]
+	path = dashboard
+	url = https://github.com/lxc-webpanel/dashboard
+[submodule "api"]
+	path = api
+	url = https://github.com/lxc-webpanel/lxc-rest
