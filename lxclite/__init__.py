@@ -44,8 +44,11 @@ def _run(cmd, output=False):
 
         return out
 
-    return subprocess.check_call('{}'.format(cmd), shell=True,
-                                 universal_newlines=True)  # returns 0 for True
+    # ignore output if command returned 0,
+    # otherwise CalledProcessError will have the return code in the returncode attribute and any output in the output attribute
+    subprocess.check_output('{}'.format(cmd), shell=True,
+                             universal_newlines=True)  # returns 0 for True
+    return 0
 
 
 class ContainerAlreadyExists(Exception):

@@ -688,8 +688,8 @@ def create_container():
                     except lxc.ContainerAlreadyExists:
                         flash(u'The Container %s is already created!' % name,
                               'error')
-                    except subprocess.CalledProcessError:
-                        flash(u'Error creating container %s' % name, 'error')
+                    except subprocess.CalledProcessError as e:
+                        flash(u'Error creating container %s: %s' % (name, e.output), 'error')
 
                 elif storage_method == 'directory':
                     directory = request.form['dir']
@@ -707,8 +707,8 @@ def create_container():
                         except lxc.ContainerAlreadyExists:
                             flash(u'The Container %s is already created!'
                                   % name, 'error')
-                        except subprocess.CalledProcessError:
-                            flash(u'Error creating container %s' % name, 'error')
+                        except subprocess.CalledProcessError as e:
+                            flash(u'Error creating container %s: %s' % (name, e.output), 'error')
 
                 elif storage_method == 'zfs':
                     zfs = request.form['zpoolname']
@@ -721,8 +721,8 @@ def create_container():
                                 flash(u'Failed to create %s!' % name, 'error')
                         except lxc.ContainerAlreadyExists:
                             flash(u'The Container %s is already created!' % name, 'error')
-                        except subprocess.CalledProcessError:
-                            flash(u'Error creating container %s' % name, 'error')
+                        except subprocess.CalledProcessError as e:
+                            flash(u'Error creating container %s: %s' % (name, e.output), 'error')
 
                 elif storage_method == 'lvm':
                     lvname = request.form['lvname']
@@ -751,8 +751,8 @@ def create_container():
                     except lxc.ContainerAlreadyExists:
                         flash(u'The container/logical volume %s is '
                               'already created!' % name, 'error')
-                    except subprocess.CalledProcessError:
-                        flash(u'Error creating container %s' % name, 'error')
+                    except subprocess.CalledProcessError as e:
+                        flash(u'Error creating container %s: %s' % (name, e.output), 'error')
 
                 else:
                     flash(u'Missing parameters to create container!', 'error')
