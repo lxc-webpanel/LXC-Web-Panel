@@ -261,16 +261,23 @@ def check_version():
     return {'current': current,
             'latest': latest}
 
+def get_net_settings_fname():
+    filename = '/etc/default/lxc-net'
+    if not file_exist(filename):
+        filename = '/etc/default/lxc'
+    if not file_exist(filename):
+        filename = None
+    return filename
+
 
 def get_net_settings():
     '''
     returns a dict of all known settings for LXC networking
     '''
-    filename = '/etc/default/lxc-net'
-    if not file_exist(filename):
-        filename = '/etc/default/lxc'
-    if not file_exist(filename):
+    filename = get_net_settings_fname()
+    if not filename:
         return False
+
     config = configparser.SafeConfigParser()
     cfg = {}
     config.readfp(FakeSection(open(filename)))
@@ -358,10 +365,12 @@ def get_container_settings(name):
     return cfg
 
 
-def push_net_value(key, value, filename='/etc/default/lxc'):
+def push_net_value(key, value):
     '''
     replace a var in the lxc-net config file
     '''
+    filename = get_net_settings_fname()
+
     if filename:
         config = configparser.RawConfigParser()
         config.readfp(FakeSection(open(filename)))
