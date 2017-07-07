@@ -630,7 +630,7 @@ def action():
                 if session['su'] != 'Yes':
                     return abort(403)
                 try:
-                    lxc.destroy(name):
+                    lxc.destroy(name)
                     flash(u'Container %s destroyed successfully!' % name, 'success')
                 except lxc.ContainerDoesntExists:
                     flash(u'The Container %s does not exists!' % name, 'error')
