@@ -103,11 +103,15 @@ def home():
         for status in ['RUNNING', 'FROZEN', 'STOPPED']:
             containers_by_status = []
 
+            running = (status == 'RUNNING')
             for container in listx[status]:
+                settings = lwp.get_container_settings(container)
+                if running:
+                    settings['ipv4'] = lxc.ip_address(container, running) 
                 containers_by_status.append({
                     'name': container,
                     'memusg': lwp.memory_usage(container),
-                    'settings': lwp.get_container_settings(container)
+                    'settings': settings
                 })
             containers_all.append({
                 'status': status.lower(),

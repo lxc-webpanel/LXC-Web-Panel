@@ -120,6 +120,14 @@ def info(container):
     return {'state': state,
             'pid': pid}
 
+def ip_address(container, assume_running=False):
+    try:
+        if assume_running or (info(container)['state'] == 'RUNNING'):
+            return _run('lxc-info -n %s -iH' % container)
+    except:
+        pass
+    return '' 
+
 
 def ls():
     '''
