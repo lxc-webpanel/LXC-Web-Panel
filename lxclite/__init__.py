@@ -30,25 +30,11 @@ import subprocess
 import os
 
 
-def _run(cmd, output=False):
+def _run(cmd):
     '''
     To run command easier
     '''
-
-    if output:
-        try:
-            out = subprocess.check_output('{}'.format(cmd), shell=True,
-                                          universal_newlines=True)
-        except subprocess.CalledProcessError:
-            out = False
-
-        return out
-
-    # ignore output if command returned 0,
-    # otherwise CalledProcessError will have the return code in the returncode attribute and any output in the output attribute
-    subprocess.check_output('{}'.format(cmd), shell=True,
-                             universal_newlines=True)  # returns 0 for True
-    return 0
+    return subprocess.check_output('{}'.format(cmd), shell=True, universal_newlines=True)
 
 
 class ContainerAlreadyExists(Exception):
@@ -72,11 +58,7 @@ def exists(container):
     Check if container exists
     '''
 
-    if container in ls():
-        return True
-
-    return False
-
+    return (container in ls())
 
 def create(container, template='ubuntu', storage=None, xargs=None):
     '''
@@ -126,8 +108,7 @@ def info(container):
         raise ContainerDoesntExists(
             'Container {} does not exist!'.format(container))
 
-    output = _run('lxc-info -qn {}|grep -i "State\|PID"'.format(container),
-                  output=True).splitlines()
+    output = _run('lxc-info -qn {}|grep -i "State\|PID"'.format(container)).splitlines()
 
     state = output[0].split()[1]
 
@@ -278,7 +259,7 @@ def checkconfig():
     Returns the output of lxc-checkconfig (colors cleared)
     '''
 
-    out = _run('lxc-checkconfig', output=True)
+    out = _run('lxc-checkconfig')
 
     if out:
         return out.replace('[1;32m', '').replace('[1;33m', '') \
