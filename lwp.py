@@ -103,11 +103,15 @@ def home():
         for status in ['RUNNING', 'FROZEN', 'STOPPED']:
             containers_by_status = []
 
+            running = (status == 'RUNNING')
             for container in listx[status]:
+                settings = lwp.get_container_settings(container)
+                if running:
+                    settings['ipv4'] = lxc.ip_address(container, running) 
                 containers_by_status.append({
                     'name': container,
                     'memusg': lwp.memory_usage(container),
-                    'settings': lwp.get_container_settings(container)
+                    'settings': settings
                 })
             containers_all.append({
                 'status': status.lower(),
@@ -592,65 +596,60 @@ def action():
 
             if action == 'start':
                 try:
-                    if lxc.start(name) == 0:
-                        # Fix bug : "the container is randomly not
-                        #            displayed in overview list after a boot"
-                        time.sleep(1)
-                        flash(u'Container %s started successfully!' % name,
-                              'success')
-                    else:
-                        flash(u'Unable to start %s!' % name, 'error')
+                    lxc.start(name)
+                    # Fix bug : "the container is randomly not
+                    #            displayed in overview list after a boot"
+                    time.sleep(1)
+                    flash(u'Container %s started successfully!' % name, 'success')
                 except lxc.ContainerAlreadyRunning:
                     flash(u'Container %s is already running!' % name, 'error')
+                except subprocess.CalledProcessError as e:
+                    flash(u'Unable to start %s: %s' % (name, e.output), 'error')
             elif action == 'stop':
                 try:
-                    if lxc.stop(name) == 0:
-                        flash(u'Container %s stopped successfully!' % name,
-                              'success')
-                    else:
-                        flash(u'Unable to stop %s!' % name, 'error')
+                    lxc.stop(name)
+                    flash(u'Container %s stopped successfully!' % name, 'success')
                 except lxc.ContainerNotRunning:
                     flash(u'Container %s is already stopped!' % name, 'error')
+                except subprocess.CalledProcessError as e:
+                    flash(u'Unable to stop %s: %s' % (name, e.output), 'error')
             elif action == 'freeze':
                 try:
-                    if lxc.freeze(name) == 0:
-                        flash(u'Container %s frozen successfully!' % name,
-                              'success')
-                    else:
-                        flash(u'Unable to freeze %s!' % name, 'error')
+                    lxc.freeze(name)
+                    flash(u'Container %s frozen successfully!' % name, 'success')
                 except lxc.ContainerNotRunning:
                     flash(u'Container %s not running!' % name, 'error')
+                except subprocess.CalledProcessError as e:
+                    flash(u'Unable to freeze %s: %s' % (name, e.output), 'error')
             elif action == 'unfreeze':
                 try:
-                    if lxc.unfreeze(name) == 0:
-                        flash(u'Container %s unfrozen successfully!' % name,
-                              'success')
-                    else:
-                        flash(u'Unable to unfeeze %s!' % name, 'error')
+                    lxc.unfreeze(name)
+                    flash(u'Container %s unfrozen successfully!' % name, 'success')
                 except lxc.ContainerNotRunning:
                     flash(u'Container %s not frozen!' % name, 'error')
+                except subprocess.CalledProcessError as e:
+                    flash(u'Unable to unfeeze %s: %s' % (name, e.output), 'error')
+
             elif action == 'destroy':
                 if session['su'] != 'Yes':
                     return abort(403)
                 try:
-                    if lxc.destroy(name) == 0:
-                        flash(u'Container %s destroyed successfully!' % name,
-                              'success')
-                    else:
-                        flash(u'Unable to destroy %s!' % name, 'error')
+                    lxc.destroy(name)
+                    flash(u'Container %s destroyed successfully!' % name, 'success')
                 except lxc.ContainerDoesntExists:
                     flash(u'The Container %s does not exists!' % name, 'error')
+                except subprocess.CalledProcessError as e:
+                    flash(u'Unable to destroy %s: %s' % (name, e.output), 'error')
             elif action == 'reboot' and name == 'host':
                 if session['su'] != 'Yes':
                     return abort(403)
                 msg = '\v*** LXC Web Panel *** \
                         \nReboot from web panel'
                 try:
-                    subprocess.check_call('/sbin/shutdown -r now \'%s\'' % msg,
-                                          shell=True)
+                    lxc._run('/sbin/shutdown -r now \'%s\'' % msg)
                     flash(u'System will now restart!', 'success')
-                except:
-                    flash(u'System error!', 'error')
+                except subprocess.CalledProcessError as e:
+                    flash(u'System error: %s' % e.output, 'error')
         try:
             if request.args['from'] == 'edit':
                 return redirect('../%s/edit' % name)
@@ -679,17 +678,13 @@ def create_container():
 
                 if storage_method == 'default':
                     try:
-                        if lxc.create(name, template=template,
-                                      xargs=command) == 0:
-                            flash(u'Container %s created successfully!' % name,
-                                  'success')
-                        else:
-                            flash(u'Failed to create %s!' % name, 'error')
+                        lxc.create(name, template=template, xargs=command)
+                        flash(u'Container %s created successfully!' % name, 'success')
                     except lxc.ContainerAlreadyExists:
                         flash(u'The Container %s is already created!' % name,
                               'error')
-                    except subprocess.CalledProcessError:
-                        flash(u'Error!' % name, 'error')
+                    except subprocess.CalledProcessError as e:
+                        flash(u'Error creating container %s: %s' % (name, e.output), 'error')
 
                 elif storage_method == 'directory':
                     directory = request.form['dir']
@@ -697,32 +692,28 @@ def create_container():
                     if re.match('^/[a-zA-Z0-9_/-]+$', directory) and \
                             directory != '':
                         try:
-                            if lxc.create(name, template=template,
-                                          storage='dir --dir %s' % directory,
-                                          xargs=command) == 0:
-                                flash(u'Container %s created successfully!'
-                                      % name, 'success')
-                            else:
-                                flash(u'Failed to create %s!' % name, 'error')
+                            lxc.create(name, template=template,
+                                       storage='dir --dir %s' % directory,
+                                       xargs=command)
+                            flash(u'Container %s created successfully!'
+                                  % name, 'success')
                         except lxc.ContainerAlreadyExists:
                             flash(u'The Container %s is already created!'
                                   % name, 'error')
-                        except subprocess.CalledProcessError:
-                            flash(u'Error!' % name, 'error')
+                        except subprocess.CalledProcessError as e:
+                            flash(u'Error creating container %s: %s' % (name, e.output), 'error')
 
                 elif storage_method == 'zfs':
                     zfs = request.form['zpoolname']
 
                     if re.match('^[a-zA-Z0-9_/-]+$', zfs) and zfs != '':
                         try:
-                            if lxc.create(name, template=template, storage='zfs --zfsroot %s' % zfs, xargs=command) == 0:
-                                flash(u'Container %s created successfully!' % name, 'success')
-                            else:
-                                flash(u'Failed to create %s!' % name, 'error')
+                            lxc.create(name, template=template, storage='zfs --zfsroot %s' % zfs, xargs=command)
+                            flash(u'Container %s created successfully!' % name, 'success')
                         except lxc.ContainerAlreadyExists:
                             flash(u'The Container %s is already created!' % name, 'error')
-                        except subprocess.CalledProcessError:
-                            flash(u'Error!' % name, 'error')
+                        except subprocess.CalledProcessError as e:
+                            flash(u'Error creating container %s: %s' % (name, e.output), 'error')
 
                 elif storage_method == 'lvm':
                     lvname = request.form['lvname']
@@ -741,18 +732,13 @@ def create_container():
                         storage_options += ' --fssize %s' % fssize
 
                     try:
-                        if lxc.create(name, template=template,
-                                      storage=storage_options,
-                                      xargs=command) == 0:
-                            flash(u'Container %s created successfully!' % name,
-                                  'success')
-                        else:
-                            flash(u'Failed to create %s!' % name, 'error')
+                        lxc.create(name, template=template, storage=storage_options, xargs=command)
+                        flash(u'Container %s created successfully!' % name, 'success')
                     except lxc.ContainerAlreadyExists:
                         flash(u'The container/logical volume %s is '
                               'already created!' % name, 'error')
-                    except subprocess.CalledProcessError:
-                        flash(u'Error!' % name, 'error')
+                    except subprocess.CalledProcessError as e:
+                        flash(u'Error creating container %s: %s' % (name, e.output), 'error')
 
                 else:
                     flash(u'Missing parameters to create container!', 'error')
@@ -790,18 +776,12 @@ def clone_container():
                 out = None
 
                 try:
-                    out = lxc.clone(orig=orig, new=name, snapshot=snapshot)
+                    lxc.clone(orig=orig, new=name, snapshot=snapshot)
+                    flash(u'Container %s cloned into %s successfully!' % (orig, name), 'success')
                 except lxc.ContainerAlreadyExists:
                     flash(u'The Container %s already exists!' % name, 'error')
-                except subprocess.CalledProcessError:
-                    flash(u'Can\'t snapshot a directory', 'error')
-
-                if out and out == 0:
-                    flash(u'Container %s cloned into %s successfully!'
-                          % (orig, name), 'success')
-                elif out and out != 0:
-                    flash(u'Failed to clone %s into %s!' % (orig, name),
-                          'error')
+                except subprocess.CalledProcessError as e:
+                    flash(u'Failed to clone %s into %s: %s' % (orig, name, e.output), 'error')
 
             else:
                 if name == '':
